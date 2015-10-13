@@ -1,5 +1,5 @@
 ## This file will contain the implementation for the stack used in the towers of hanoi
-
+import sys
 
 class Node:
     def __init__(self, value):
@@ -73,22 +73,25 @@ class Stack(object):
         stack = []
         if self.get_size() == 0:
             return stack
-        
-        #Loop through each node and add values to array
         while start != None:
             stack.append(start.value)
             start = start.get_next()
         
         return stack
     
+    def copy(self):
+        values = self.to_array()
+        copy_stack = Stack()
+        for value in values[::-1]:
+            copy_stack.push(value)
+        return copy_stack
+        
     def printStack(self):
         stack = self.to_array()
         for value in stack[:-1]:
             print(str(value) + ", ",end="")
-        #Print last element if list is not empty
         if len(stack) > 0:
             print(str(stack[-1]))
-        #Print so that a newline is created in terminal for spacing
         else:
             print("")
 
