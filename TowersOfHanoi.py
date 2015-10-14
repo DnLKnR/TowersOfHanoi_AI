@@ -4,10 +4,23 @@ from Stack import Stack
 import queue,copy,sys
 
 """This is where the problem is defined. Initial state, goal state and other information that can be got from the problem"""
-class Problem(object):
+class Towers_Of_Hanoi(object):
     
-    def __init__(self, initial, goal=None):
+    def __init__(self, length=3, height=3):
         """This is the constructor for the Problem class. It specifies the initial state, and possibly a goal state, if there is a unique goal.  You can add other arguments if the need arises"""
+        self.length = length
+        self.height = height
+        self.__construct__()
+    
+    def __construct__(self):
+        initial = []
+        goal = []
+        for i in range(self.length):
+            initial.append(Stack())
+            goal.append(Stack())
+        for i in range(self.height,0,-1):
+            initial[0].push(i)
+            goal[-1].push(i)
         self.initial = initial
         self.goal = goal
     
@@ -17,17 +30,16 @@ class Problem(object):
         many actions, consider yielding them one at a time in an
         iterator, rather than building them all at once."""
         action = []
-        length = len(state)
-        for i in range(length):
+        for i in range(self.length):
             if state[i].get_size() > 0:
-                for j in range(length):
+                for j in range(self.length):
                     if i == j:
                         continue
-                    elif state[j].get_size() == 0:
+                    elif state[j].is_empty():
                         action.append([i,j])
                     elif state[i].peek() < state[j].peek():
                         action.append([i,j])
-        print(action)
+        #print(action)
         return action
 	
     def result(self, state, action):
@@ -48,12 +60,10 @@ class Problem(object):
         state to self.goal, as specified in the constructor. Override this
         method if checking against a single self.goal is not enough.
         This must be written by students"""
-        height = 3
-        if state[-1].get_size() != height:
+        if state[-1].get_size() != self.height:
             return False
-        last_tower = state[-1].to_array()    
-        for i in range(1,height + 1):
-            if last_tower[i - 1] != i:
+        for i in range(self.length):
+            if not self.goal[i].compare(state[i]):
                 return False
         return True
 		
@@ -124,27 +134,21 @@ def breadth_first_search(problem):
 
                 return child
             # Add every new child to the frontier
-            print("Mediary: ")
-            print_towers(child.state)
+            #print("Mediary: ")
+            #print_towers(child.state)
             frontier.put_nowait(child)
     return None
 
 def print_towers(towers):
+    print("_" * 2 * len(towers))
     for tower in towers:
         print("| ",end="")
         tower.printStack()
+    print("_" * 2 * len(towers))
 
 
-def construct(number_towers=3,height=3):
-    towers = []
-    for i in range(number_towers):
-        towers.append(Stack())
-    for i in range(height,0,-1):
-        towers[0].push(i)
-    return towers
 
-
-breadth_first_search(Problem(construct(3,3)))
+breadth_first_search(Towers_Of_Hanoi(length=3,height=4))
 
 
 
