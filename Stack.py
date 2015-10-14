@@ -68,6 +68,9 @@ class Stack(object):
         
         return True
     
+    def is_empty(self):
+        return (self.length == 0)
+    
     def to_array(self):
         start = self.head
         stack = []
