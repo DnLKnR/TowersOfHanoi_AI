@@ -18,7 +18,7 @@ class Node:
 class Stack(object):
     def __init__(self):
         self.head = None
-        #self.tail = None
+        self.tail = None
         self.length = 0
         
     def push(self, value):
@@ -36,6 +36,8 @@ class Stack(object):
         #If stack is null, return invalid
         if self.length == 0:
             return -1
+        elif self.length == 1:
+            self.tail = None
         #get the value off the first node
         value = self.head.get_value()
         #increment head forwards
@@ -44,7 +46,19 @@ class Stack(object):
         self.length -= 1
         #return the value
         return value
-        
+    
+    def queue(self,value):
+        new = Node(value)
+        if self.length == 0:
+            self.head = new
+            self.tail = new
+        else:
+            self.tail.set_next(new)
+            #Set tail to the newly added item
+            self.tail = self.tail.get_next()
+        #Increment the length of the stack
+        self.length += 1
+    
     def get_size(self):
         #return length of the stack
         return self.length
@@ -83,13 +97,15 @@ class Stack(object):
         return stack
     
     def copy(self):
-        values = self.to_array()
-        copy_stack = Stack()
-        for value in values[::-1]:
-            copy_stack.push(value)
+        start       = self.head
+        copy_stack  = Stack()
+        while start != None:
+            value = start.get_value()
+            copy_stack.queue(value)
+            start = start.get_next()
         return copy_stack
         
-    def printStack(self):
+    def print_stack(self):
         stack = self.to_array()
         for value in stack[:-1]:
             print(str(value) + ", ",end="")

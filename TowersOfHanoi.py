@@ -213,13 +213,13 @@ def print_towers(towers):
     print("_" * 2 * len(towers))
     for tower in towers:
         print("| ",end="")
-        tower.printStack()
+        tower.print_stack()
     print("_" * 2 * len(towers))
 
 
 
-breadth_first_search(Towers_Of_Hanoi(length=3,height=4))
-breadth_first_search(Towers_Of_Hanoi(length=3,height=4,explore=False))
+breadth_first_search(Towers_Of_Hanoi(length=3,height=7))
+#breadth_first_search(Towers_Of_Hanoi(length=3,height=4,explore=False))
 
 
 

@@ -34,6 +34,8 @@ class StackTest:
             #Verify that the length is proper
             if not self.assert_true(self.stack.get_size(), i):
                 print("\tLengths do not match between stack and values array")
+            if not self.assert_queue():
+                print("\tLength of " + str(i) + " failed queue test")
             #Verify that stack compare works provided equal stack
             self.assert_compare()
         
@@ -41,8 +43,7 @@ class StackTest:
             print("Stack test results for " + self.name + ": All tests passed")
         else:
             print("Stack test results for " + self.name + ": tests failed.")
-            
-                
+                     
     def assert_true(self, item_1, item_2):
         if item_1 != item_2:
             print(self.name + ": Assertion False")
@@ -60,7 +61,42 @@ class StackTest:
                 print(self.name + ": Assertion False")
                 self.print_test(list_1,list_2)
                 self.fail()
-                
+                return False
+        return True
+    def assert_queue(self):
+        fail = "Assert Queue Failed: "
+        old_stack = self.stack.copy()
+        old_array = self.stack.to_array()
+        
+        new_stack = Stack()
+        
+        length = [old_stack.get_size()]
+        for i in range(length[0]):
+            new_stack.queue(old_stack.pop())
+        length.append(new_stack.get_size())
+        
+        if length[0] != length[1]:
+            print(fail + "Sizes do not match")
+            self.fail()
+            return False
+        
+        for i in range(length[0]):
+            new_stack.queue(new_stack.pop())
+            
+        for i in range(length[0]):
+            new_stack.pop()
+        
+        for i in range(length[0]):
+            new_stack.queue(old_array[i])
+            
+        new_array = new_stack.to_array()
+        if not self.assert_list(old_array, new_array):
+            print(fail + "Arrays do not match")
+            self.fail()
+            return False
+        return True
+        
+        
     def assert_compare(self):
         #Verify that stack compare works provided null stack
         if self.stack.compare(Stack()) and self.stack.get_size():
@@ -87,8 +123,8 @@ class StackTest:
             self.fail()
     
     def print_test(self,expected,result):
-        print("\tExpected output: " + str(expected))
-        print("\t         Result: " + str(result))
+        print("Expected output:\t" + str(expected))
+        print("Result:\t\t\t" + str(result))
     
 
 def run_tests(tests):
