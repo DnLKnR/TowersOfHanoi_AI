@@ -6,34 +6,36 @@ import queue,copy,sys
 """This is where the problem is defined. Initial state, goal state and other information that can be got from the problem"""
 class Towers_Of_Hanoi(object):
     
-    def __init__(self, length=3, height=3, is_swapped=False):
+    def __init__(self, length=3, height=3, swap=False, explore=True):
         """This is the constructor for the Problem class. It specifies the initial state, and possibly a goal state, if there is a unique goal.  You can add other arguments if the need arises"""
-        self.length = length
-        self.height = height
-        self.explored = []
-        self.__construct__(is_swapped)
+        self.length     = length
+        self.height     = height
+        self.swap       = swap
+        self.explore    = explore
+        self.explored   = []
+        
+        self.__construct__(swap)
     
-    def __construct__(self, is_swapped):
+    def __construct__(self, swap):
         """This is the function that constructs the initial state and 
         the goal state for the towers of hanoi.  Note: One of the 
         Bidirectional's Towers of Hanoi setup needs the goal state and 
         the initial state swapped, thus there is an extra parameter to
         perform this action."""
         initial = []
-        goal = []
+        goal    = []
         for i in range(self.length):
             initial.append(Stack())
             goal.append(Stack())
         for i in range(self.height,0,-1):
             initial[0].push(i)
             goal[-1].push(i)
-        
-        if is_swapped:
-            self.initial = goal
-            self.goal = initial
+        if swap:
+            self.initial    = goal
+            self.goal       = initial
         else:
-            self.initial = initial
-            self.goal = goal
+            self.initial    = initial
+            self.goal       = goal
     
     def actions(self, state):
         """Return the actions that can be executed in the given
@@ -41,7 +43,7 @@ class Towers_Of_Hanoi(object):
         many actions, consider yielding them one at a time in an
         iterator, rather than building them all at once."""
         action = []
-        if self.is_explored(state):
+        if self.explore and self.is_explored(state):
             return action
         for i in range(self.length):
             if state[i].get_size() > 0:
@@ -52,7 +54,8 @@ class Towers_Of_Hanoi(object):
                         action.append([i,j])
                     elif state[i].peek() < state[j].peek():
                         action.append([i,j])
-        self.explored.append(state)
+        if self.explore:
+            self.explored.append(state)
         return action
 	
     def copy(self, state):
@@ -66,10 +69,12 @@ class Towers_Of_Hanoi(object):
         """Return the state that results from executing the given
         action in the given state. The action must be one of
         self.actions(state)."""
-        new_state = self.copy(state)
-        i,j = action
-        value = new_state[i].pop()
+        new_state   = self.copy(state)
+        i,j         = action
+        value       = new_state[i].pop()
+        
         new_state[j].push(value)
+        
         return new_state
     
     def is_explored(self, state):
@@ -102,10 +107,10 @@ class Node(object):
 	def __init__(self, state, parent=None, action=None):
 		"""Create a search tree Node, derived from a parent by an action.
 		Update the node parameters based on constructor values"""
-		self.state = state
-		self.parent = parent
-		self.action = action
-		self.depth = 0
+		self.state    = state
+		self.parent   = parent
+		self.action   = action
+		self.depth    = 0
 		# If depth is specified then depth of node will be 1 more than the depth of parent
 		if parent:
 			self.depth = parent.depth + 1
@@ -120,7 +125,7 @@ class Node(object):
 		return Node(next, self, action)
 
 
-def bidirectional_search(problem,solution):
+def bidirectional_search(problem, solution):
     # Start from first node of the problem Tree
     node = Node(problem.initial)
     # Check if current node meets Goal_Test criteria
@@ -213,7 +218,8 @@ def print_towers(towers):
 
 
 
-breadth_first_search(Towers_Of_Hanoi(length=3,height=7))
+breadth_first_search(Towers_Of_Hanoi(length=3,height=4))
+breadth_first_search(Towers_Of_Hanoi(length=3,height=4,explore=False))
 
 
 
