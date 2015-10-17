@@ -1,13 +1,12 @@
 ##This file will contain the implementation for the towers of hanoi
-from Stack import Stack
-from Queue import Queue
-import queue,copy,sys,timeit
-from django.template.defaultfilters import length
+import timeit
 
 class Towers_Of_Hanoi(object):
     
     def __init__(self, length=3, height=3, swap=False, explore=True):
-        """This is the constructor for the Problem class. It specifies the initial state, and possibly a goal state, if there is a unique goal.  You can add other arguments if the need arises"""
+        """This is the constructor for the Problem class. It specifies 
+        the initial state, and possibly a goal state, if there is a 
+        unique goal.  You can add other arguments if the need arises"""
         self.length     = length
         self.height     = height
         self.swap       = swap
@@ -24,6 +23,7 @@ class Towers_Of_Hanoi(object):
         perform this action."""
         initial = []
         goal    = []
+        
         for i in range(self.length):
             initial.append([])
             goal.append([])
@@ -136,36 +136,21 @@ class Node(object):
 
 
 def bidirectional_search(problem, goal):
-    # Start from first node of the problem Tree
-    i_node  = Node(problem.initial)
-    s_node  = Node(goal.initial)
-    # Check if current node meets Goal_Test criteria
-    if problem.compare(i_node.state,s_node.state):
-        return top
+    # Initialize variables and lists
+    initial,solution    = 0,1
+    explore             = [[Node(problem.initial)],[Node(goal.initial)]]
+    frontier            = [[],[]]
+    length              = [1,1]
+    # Check if problem is equivalent to goal
+    if problem.compare(explore[initial][0].state, explore[solution][0].state):
+        return [explore[initial][0], explore[solution][0]]
     
-    # Create a Queue to store all nodes of a particular level. Import QueueClass()
-    initial,solution    = 0,        1
-    explore             = [[i_node],[s_node]]
-    frontier            = [[],      []]
-    length              = [1,       1]
-    
-    ## QUESTION 3 NODE QUANTIFIER ##
+    ## NODE QUANTIFIER ##
     node_counter = 2
     
     #print_towers(node.state)
     # Loop until all nodes are explored(frontier queue is empty) or Goal_Test criteria are met
     while 0 not in length:
-        #compare all parents from top and bottom against each other, 
-        for init in explore[initial]:
-            for sol in explore[solution]:
-                # if two match, solution is found
-                if problem.compare(init.state,sol.state):
-                    print("Top Solution:\t",end="")
-                    print_towers(init.state)
-                    print("Bottom Solution: ",end="")
-                    print_towers(sol.state)
-                    print("Nodes Created:\t"+str(node_counter))
-                    return [init,sol]
         
         #Generate all the initial side children
         length[initial] = 0
@@ -173,22 +158,38 @@ def bidirectional_search(problem, goal):
             for child in parent.expand(problem):
                 frontier[initial].append(child)
                 length[initial] += 1
+                ## NODE QUANTIFIER ##
                 node_counter += 1
+                
+        #Swap initial-side children to parent lists, then reset children
+        explore[initial]    = frontier[initial]
+        frontier[initial]   = []
+        
+        #compare all parents from top and bottom against each other, 
+        for init in explore[initial]:
+            for sol in explore[solution]:
+                # if two match, solution is found
+                if problem.compare(init.state,sol.state):
+                    print("Top Solution:\t\t",end="")
+                    print_towers(init.state)
+                    print("Bottom Solution:\t",end="")
+                    print_towers(sol.state)
+                    print("Nodes Created:\t\t"+str(node_counter))
+                    return [init,sol]
         
         #Generate all the solution side children  
         length[solution] = 0
         for parent in explore[solution]:
             for child in parent.expand(goal):
-                frontier[solution].append(child)
+                frontier[solution].insert(0,child)
                 length[solution] += 1
+                ## NODE QUANTIFIER ##
                 node_counter += 1
         
-        #Swap children to parent lists, then reset children
-        explore    = frontier
-        length      = [len(explore[initial]),len(explore[solution])]
-        frontier    = [[],  []]
-        
-        
+        #Swap solution-side children to parent lists, then reset children
+        explore[solution]   = frontier[solution]
+        frontier[solution]  = []
+                
     return None
     
 def breadth_first_search(problem):
@@ -275,8 +276,10 @@ if __name__ == '__main__':
     print("BFS:\t\t" + str(t1.timeit(1)))
     #Perform Trace, store actions
     PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT)
-    BFS_ACTIONS = trace(breadth_first_search(PROBLEM))
+    BFS_STATES = trace(breadth_first_search(PROBLEM))
     #Bidirectional Breadth-First-Search
+    
+    ## SETUP AND RUN TIMEIT INSTANCE FOR RUNTIME ##
     PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT)
     GOAL    = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT,swap=True)
     t2 = timeit.Timer('bidirectional_search(PROBLEM, GOAL)',
@@ -284,22 +287,22 @@ if __name__ == '__main__':
     print("Bidirectional:\t" + str(t2.timeit(1)))
     PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT)
     GOAL    = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT,swap=True)
-    BI_ACTIONS = trace(bidirectional_search(PROBLEM, GOAL))
+    BI_STATES = trace(bidirectional_search(PROBLEM, GOAL))
     print("Bidirectional vs Breadth-First-Search Comparison")
-    if len(BI_ACTIONS) != len(BFS_ACTIONS):
-        print("Length Test failed\nBidirectional:\t\t"      + str(len(BI_ACTIONS)) + 
-                                "\nBreadth-First-Search:\t" + str(len(BFS_ACTIONS)))
-        print(BI_ACTIONS)
-        print(BFS_ACTIONS)
+    if len(BI_STATES) != len(BFS_STATES):
+        print("Length Test failed\nBidirectional:\t\t"      + str(len(BI_STATES)) + 
+                                "\nBreadth-First-Search:\t" + str(len(BFS_STATES)))
+        print(BI_STATES)
+        print(BFS_STATES)
     else:
         mismatch = 0
-        for i in range(len(BI_ACTIONS)):
-            if not PROBLEM.compare(BI_ACTIONS[i], BFS_ACTIONS[i]):
+        for i in range(len(BI_STATES)):
+            if not PROBLEM.compare(BI_STATES[i], BFS_STATES[i]):
                 mismatch += 1
         if mismatch:
             print("Match Test failed\n\tMismatch Count:\t" + str(mismatch))
-            print(BI_ACTIONS)
-            print(BFS_ACTIONS)
+            print(BI_STATES)
+            print(BFS_STATES)
         else:
             print("All tests executed correctly")
     
