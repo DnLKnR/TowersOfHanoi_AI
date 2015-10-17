@@ -1,9 +1,9 @@
 ##This file will contain the implementation for the towers of hanoi
 from Stack import Stack
+from Queue import Queue
+import queue,copy,sys,timeit
+from django.template.defaultfilters import length
 
-import queue,copy,sys
-
-"""This is where the problem is defined. Initial state, goal state and other information that can be got from the problem"""
 class Towers_Of_Hanoi(object):
     
     def __init__(self, length=3, height=3, swap=False, explore=True):
@@ -25,11 +25,13 @@ class Towers_Of_Hanoi(object):
         initial = []
         goal    = []
         for i in range(self.length):
-            initial.append(Stack())
-            goal.append(Stack())
+            initial.append([])
+            goal.append([])
+        
         for i in range(self.height,0,-1):
-            initial[0].push(i)
-            goal[-1].push(i)
+            initial[0].append(i)
+            goal[-1].append(i)
+        
         if swap:
             self.initial    = goal
             self.goal       = initial
@@ -46,22 +48,24 @@ class Towers_Of_Hanoi(object):
         if self.explore and self.is_explored(state):
             return action
         for i in range(self.length):
-            if state[i].get_size() > 0:
+            if len(state[i]) > 0:
                 for j in range(self.length):
                     if i == j:
                         continue
-                    elif state[j].is_empty():
+                    elif len(state[j]) == 0:
                         action.append([i,j])
-                    elif state[i].peek() < state[j].peek():
+                    elif state[i][-1] < state[j][-1]:
                         action.append([i,j])
         if self.explore:
-            self.explored.append(state)
+            self.explored.insert(0,state)
         return action
-	
+    
     def copy(self, state):
         new_state = []
         for tower in state:
-            new_tower = tower.copy()
+            new_tower = []
+            for value in tower:
+                new_tower.append(value)
             new_state.append(new_tower)
         return new_state
     
@@ -73,20 +77,23 @@ class Towers_Of_Hanoi(object):
         i,j         = action
         value       = new_state[i].pop()
         
-        new_state[j].push(value)
+        new_state[j].append(value)
         
         return new_state
     
     def is_explored(self, state):
-        for explored_state in self.explored[::-1]:
+        for explored_state in self.explored:
             if self.compare(explored_state,state):
                 return True
         return False
     
     def compare(self, state, other):
-        for i in range(self.length):
-            if not state[i].compare(other[i]):
+        for i,tower in enumerate(state):
+            if len(other[i]) != len(tower):
                 return False
+            for j,value in enumerate(tower):
+                if other[i][j] != value:
+                    return False
         return True
     
     def goal_test(self, state):
@@ -94,10 +101,13 @@ class Towers_Of_Hanoi(object):
         state to self.goal, as specified in the constructor. Override this
         method if checking against a single self.goal is not enough.
         This must be written by students"""
-        if not self.compare(state, self.goal):
+        if self.compare(state, self.goal):
+            return True
+        else:
             return False
-        return True
-		
+
+
+	
 class Node(object):
 	"""A node in a search tree. Contains a pointer to the parent (the node
 	that this is a successor of) and to the actual state for this node. Note
@@ -125,46 +135,60 @@ class Node(object):
 		return Node(next, self, action)
 
 
-def bidirectional_search(problem, solution):
+def bidirectional_search(problem, goal):
     # Start from first node of the problem Tree
-    node = Node(problem.initial)
+    i_node  = Node(problem.initial)
+    s_node  = Node(goal.initial)
     # Check if current node meets Goal_Test criteria
-    if problem.goal_test(node.state):
-        return node
-    # Create a Queue to store all nodes of a particular level. Import QueueClass()
-    frontier=queue.Queue()
-    frontier.put_nowait(node)
-
-    ## QUESTION 3 NODE QUANTIFIER ##
-    node_counter = 1
+    if problem.compare(i_node.state,s_node.state):
+        return top
     
-    print_towers(node.state)
+    # Create a Queue to store all nodes of a particular level. Import QueueClass()
+    initial,solution    = 0,        1
+    explore             = [[i_node],[s_node]]
+    frontier            = [[],      []]
+    length              = [1,       1]
+    
+    ## QUESTION 3 NODE QUANTIFIER ##
+    node_counter = 2
+    
+    #print_towers(node.state)
     # Loop until all nodes are explored(frontier queue is empty) or Goal_Test criteria are met
-    while frontier:
-        # if queue is empty, there is no solution
-        if frontier.qsize() == 0:
-            return None
-        # Remove from frontier, for analysis
-        node = frontier.get_nowait()
-        # Loop over all children of the current node
-        # Note: We consider the fact that a node can have multiple child nodes here
-        for child in node.expand(problem):
-
-            ## QUESTION 3 NODE QUANTIFIER ##
-            node_counter += 1
-
-            # If child node meets Goal_Test criteria
-            if problem.goal_test(child.state):
-                print("Solution found: ")
-                print_towers(child.state)
-                ## QUESTION 3 NODE QUANTIFIER ##
-                print("\n\nNodes Created: " + str(node_counter))
-
-                return child
-            # Add every new child to the frontier
-            #print("Mediary: ")
-            #print_towers(child.state)
-            frontier.put_nowait(child)
+    while 0 not in length:
+        #compare all parents from top and bottom against each other, 
+        for init in explore[initial]:
+            for sol in explore[solution]:
+                # if two match, solution is found
+                if problem.compare(init.state,sol.state):
+                    print("Top Solution:\t",end="")
+                    print_towers(init.state)
+                    print("Bottom Solution: ",end="")
+                    print_towers(sol.state)
+                    print("Nodes Created:\t"+str(node_counter))
+                    return [init,sol]
+        
+        #Generate all the initial side children
+        length[initial] = 0
+        for parent in explore[initial]:
+            for child in parent.expand(problem):
+                frontier[initial].append(child)
+                length[initial] += 1
+                node_counter += 1
+        
+        #Generate all the solution side children  
+        length[solution] = 0
+        for parent in explore[solution]:
+            for child in parent.expand(goal):
+                frontier[solution].append(child)
+                length[solution] += 1
+                node_counter += 1
+        
+        #Swap children to parent lists, then reset children
+        explore    = frontier
+        length      = [len(explore[initial]),len(explore[solution])]
+        frontier    = [[],  []]
+        
+        
     return None
     
 def breadth_first_search(problem):
@@ -174,20 +198,18 @@ def breadth_first_search(problem):
     if problem.goal_test(node.state):
         return node
     # Create a Queue to store all nodes of a particular level. Import QueueClass()
-    frontier=queue.Queue()
-    frontier.put_nowait(node)
-
+    frontier    = [node]
+    length      = 1
+    
     ## QUESTION 3 NODE QUANTIFIER ##
     node_counter = 1
     
     print_towers(node.state)
     # Loop until all nodes are explored(frontier queue is empty) or Goal_Test criteria are met
-    while frontier:
-        # if queue is empty, there is no solution
-        if frontier.qsize() == 0:
-            return None
+    while length:
         # Remove from frontier, for analysis
-        node = frontier.get_nowait()
+        node = frontier.pop(0)
+        length -= 1
         # Loop over all children of the current node
         # Note: We consider the fact that a node can have multiple child nodes here
         for child in node.expand(problem):
@@ -200,26 +222,86 @@ def breadth_first_search(problem):
                 print("Solution found: ")
                 print_towers(child.state)
                 ## QUESTION 3 NODE QUANTIFIER ##
-                print("\n\nNodes Created: " + str(node_counter))
+                print("\n\nNodes Created:\t" + str(node_counter))
 
-                return child
+                return [child]
             # Add every new child to the frontier
             #print("Mediary: ")
             #print_towers(child.state)
-            frontier.put_nowait(child)
+            frontier.append(child)
+            length += 1
+            
     return None
 
 def print_towers(towers):
+    print(towers)
     print("_" * 2 * len(towers))
     for tower in towers:
         print("| ",end="")
-        tower.print_stack()
+        for value in tower:
+            print(str(value) + " | ", end ="")
+        print("")
     print("_" * 2 * len(towers))
 
-
-
-breadth_first_search(Towers_Of_Hanoi(length=3,height=7))
-#breadth_first_search(Towers_Of_Hanoi(length=3,height=4,explore=False))
-
-
+def trace(solution):
+    if solution == None:
+        print("No solution exists: Parameter 1 is None-Type")
+    elif len(solution) == 1:
+        start = solution[0]
+        actions = []
+        while start.parent != None:
+            actions.insert(0, start.action)
+            start = start.parent
+        return actions
+    else:
+        start = [solution[0],solution[1].parent]
+        actions = []
+        while start[0].parent != None:
+            actions.insert(0, start[0].action)
+            start[0] = start[0].parent
+        while start[1].parent != None:
+            actions.append(start[1].action[::-1])
+            start[1] = start[1].parent
+        return actions
+        
+if __name__ == '__main__':
+    #define base params
+    LENGTH        = 3
+    HEIGHT        = 4
+    #Breadth-First-Search
+    PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT)
+    t1 = timeit.Timer('breadth_first_search(PROBLEM)',
+                      setup="from __main__ import breadth_first_search, Towers_Of_Hanoi, PROBLEM")
+    print("BFS:\t\t" + str(t1.timeit(1)))
+    #Perform Trace, store actions
+    PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT)
+    BFS_ACTIONS = trace(breadth_first_search(PROBLEM))
+    #Bidirectional Breadth-First-Search
+    PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT)
+    GOAL    = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT,swap=True)
+    t2 = timeit.Timer('bidirectional_search(PROBLEM, GOAL)',
+                      setup="from __main__ import bidirectional_search, Towers_Of_Hanoi, PROBLEM, GOAL")
+    print("Bidirectional:\t" + str(t2.timeit(1)))
+    PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT)
+    GOAL    = Towers_Of_Hanoi(length=LENGTH,height=HEIGHT,swap=True)
+    BI_ACTIONS = trace(bidirectional_search(PROBLEM, GOAL))
+    print("Bidirectional vs Breadth-First-Search Comparison")
+    if len(BI_ACTIONS) != len(BFS_ACTIONS):
+        print("Length Test failed\nBidirectional:\t\t"      + str(len(BI_ACTIONS)) + 
+                                "\nBreadth-First-Search:\t" + str(len(BFS_ACTIONS)))
+        print(BI_ACTIONS)
+        print(BFS_ACTIONS)
+    else:
+        mismatch = 0
+        for i in range(len(BI_ACTIONS)):
+            if BI_ACTIONS[i] != BFS_ACTIONS[i]:
+                
+                mismatch += 1
+        if mismatch:
+            print("Match Test failed\n\tMismatch Count:\t" + str(mismatch))
+            print(BI_ACTIONS)
+            print(BFS_ACTIONS)
+        else:
+            print("All tests executed correctly")
+    
 
