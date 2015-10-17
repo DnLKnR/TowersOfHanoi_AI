@@ -249,18 +249,18 @@ def trace(solution):
     elif len(solution) == 1:
         start = solution[0]
         actions = []
-        while start.parent != None:
-            actions.insert(0, start.action)
+        while start != None:
+            actions.insert(0, start.state)
             start = start.parent
         return actions
     else:
         start = [solution[0],solution[1].parent]
         actions = []
-        while start[0].parent != None:
-            actions.insert(0, start[0].action)
+        while start[0] != None:
+            actions.insert(0, start[0].state)
             start[0] = start[0].parent
-        while start[1].parent != None:
-            actions.append(start[1].action[::-1])
+        while start[1] != None:
+            actions.append(start[1].state)
             start[1] = start[1].parent
         return actions
         
@@ -294,8 +294,7 @@ if __name__ == '__main__':
     else:
         mismatch = 0
         for i in range(len(BI_ACTIONS)):
-            if BI_ACTIONS[i] != BFS_ACTIONS[i]:
-                
+            if not PROBLEM.compare(BI_ACTIONS[i], BFS_ACTIONS[i]):
                 mismatch += 1
         if mismatch:
             print("Match Test failed\n\tMismatch Count:\t" + str(mismatch))
