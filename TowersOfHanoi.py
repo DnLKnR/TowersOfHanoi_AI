@@ -132,7 +132,7 @@ class Node(object):
 		return Node(next, self, action)
 
 
-def bidirectional_search(problem, goal):
+def bidirectional_search(problem, goal,return_mem_usage=False):
     # Initialize variables and lists
     initial,solution    = 0,1
     explore             = [[Node(problem.initial)],[Node(goal.initial)]]
@@ -142,9 +142,9 @@ def bidirectional_search(problem, goal):
     if problem.compare(explore[initial][0].state, explore[solution][0].state):
         return [explore[initial][0], explore[solution][0]]
     
-    ## NODE QUANTIFIER ##
-    node_counter = 2
-    
+    ## MEMORY USAGE QUANTIFIER ##
+    node_counter    = 2
+    max_length      = 2
     #print_towers(node.state)
     # Loop until all nodes are explored(frontier queue is empty) or Goal_Test criteria are met
     while 0 not in length:
@@ -157,7 +157,11 @@ def bidirectional_search(problem, goal):
                 length[initial] += 1
                 ## NODE QUANTIFIER ##
                 node_counter += 1
-                
+        
+        #Update max length if new total length is larger
+        if max_length < length[initial] + length[solution]:
+            max_length = length[initial] + length[solution]
+            
         #Swap initial-side children to parent lists, then reset children
         explore[initial]    = frontier[initial]
         frontier[initial]   = []
@@ -167,12 +171,13 @@ def bidirectional_search(problem, goal):
             for sol in explore[solution]:
                 # if two match, solution is found
                 if problem.compare(init.state,sol.state):
-                    #print("Top Solution:\t\t",end="")
-                    #print_towers(init.state)
-                    #print("Bottom Solution:\t",end="")
-                    #print_towers(sol.state)
-                    print("Nodes Created:\t\t"+str(node_counter))
-                    return [init,sol]
+                    answer = [init,sol]
+                    #Include memory usage values if requested
+                    if return_mem_usage:
+                        explored_length = len(problem.explored) + len(goal.explored)
+                        answer.append([node_counter, explored_length, max_length])
+                    
+                    return answer 
         
         #Generate all the solution side children  
         length[solution] = 0
@@ -183,13 +188,16 @@ def bidirectional_search(problem, goal):
                 ## NODE QUANTIFIER ##
                 node_counter += 1
         
+        if max_length < length[initial] + length[solution]:
+            max_length = length[initial] + length[solution]
+        
         #Swap solution-side children to parent lists, then reset children
         explore[solution]   = frontier[solution]
         frontier[solution]  = []
                 
     return None
     
-def breadth_first_search(problem):
+def breadth_first_search(problem,return_mem_usage=False):
     # Start from first node of the problem Tree
     node = Node(problem.initial)
     # Check if current node meets Goal_Test criteria
@@ -199,12 +207,15 @@ def breadth_first_search(problem):
     frontier    = [node]
     length      = 1
     
-    ## NODE QUANTIFIER ##
+    ## MEMORY USAGE QUANTIFIER ##
     node_counter = 1
-    
+    max_length   = 1
     # print_towers(node.state)
     # Loop until all nodes are explored(frontier queue is empty) or Goal_Test criteria are met
     while length:
+        # If max_length is smaller than current length, update it
+        if max_length < length:
+            max_length = length
         # Remove from frontier, for analysis
         node = frontier.pop(0)
         length -= 1
@@ -217,15 +228,17 @@ def breadth_first_search(problem):
 
             # If child node meets Goal_Test criteria
             if problem.goal_test(child.state):
-                #print("Solution found: ")
-                #print_towers(child.state)
-                ## NODE QUANTIFIER ##
-                print("\n\nNodes Created:\t" + str(node_counter))
-                return [child]
+                
+                answer = [child]
+                if return_mem_usage:
+                    explored_length = len(problem.explored)
+                    answer.append([node_counter,explored_length,max_length])
+                
+                return answer
             
             frontier.append(child)
             length += 1
-            
+        
     return None
 
 def print_towers(towers):
