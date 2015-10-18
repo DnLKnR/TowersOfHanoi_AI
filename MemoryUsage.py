@@ -39,36 +39,34 @@ if __name__ == '__main__':
     NODE_OF     = [[],[]]
     HEIGHT      = range(LOW, HIGH + 1)
     
-    ## EXECUTE BREADTH FIRST SEARCH RUN-TIME ANALYSIS ##
+    ## EXECUTE BREADTH FIRST SEARCH MEMORY-USAGE ANALYSIS ##
     for h in HEIGHT:
-        ## SETUP AND RUN TIMEIT INSTANCE FOR RUNTIME FOR HEIGHT h over COUNT repetitions ##
+        ## SETUP AND STORE INSTANCE FOR MEMORY USAGE FOR HEIGHT h ##
         answer = breadth_first_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE),
                                          return_mem_usage=True)
-        #get average run-time over COUNT runs, rounded to the nearest hundredth-thousand
+        ## GET AND STORE MEMORY USAGE METRICS ##
         mem_usage = answer[1]
         NODE_OF[_BFS].append(mem_usage)
     
-    ## EXECUTE BIDIRECTIONAL SEARCH RUN-TIME ANALYSIS ##
+    ## EXECUTE BIDIRECTIONAL SEARCH MEMORY-USAGE ANALYSIS ##
     for h in HEIGHT:
-        ## SETUP AND RUN TIMEIT INSTANCE FOR RUNTIME FOR HEIGHT h over COUNT repetitions ##
+        ## SETUP AND STORE INSTANCE FOR MEMORY USAGE FOR HEIGHT h ##
         answer = bidirectional_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE),
                                       Towers_Of_Hanoi(length=LENGTH,height=h,swap=True,explore=EXPLORE),
                                       return_mem_usage=True)
         
-        #get average run-time over COUNT runs, rounded to the nearest hundredth-thousand, and store it
+        ## GET AND STORE MEMORY USAGE METRICS ##
         mem_usage = answer[2]
         NODE_OF[_BI].append(mem_usage)
     
-    ## CREATE TABLE TO OUTPUT RUN-TIME ANALYSIS ##
+    ## FORMAT OUTPUT FOR MEMORY USAGE ##
     table  = "Towers Of Hanoi Test: Memory Usage (in Nodes) Analysis\n"
-    
-    ## CREATE TABLE TO OUTPUT RUN-TIME ANALYSIS ##
-    table     = "Towers Of Hanoi Test: Memory Usage Analysis\n"
-    table   += "-" * len(table) + "\n"
-    table   += "TEST SETTINGS\n"
-    table   += "   Use Explored Set:\t" + str(EXPLORE) + "\n"
-    table   += "   Number Of Towers:\t" + str(LENGTH) + "\n"
-    table   += "TEST RESULTS (by height)\n"
+    table  = "Towers Of Hanoi Test: Memory Usage Analysis\n"
+    table += "-" * len(table) + "\n"
+    table += "TEST SETTINGS\n"
+    table += "   Use Explored Set:\t" + str(EXPLORE) + "\n"
+    table += "   Number Of Towers:\t" + str(LENGTH) + "\n"
+    table += "TEST RESULTS (by height)\n"
     for i,h in enumerate(HEIGHT):
         table += "   For Height = " + str(h) + ":\n"
         table += "\tBreadth-First-Search:\n"

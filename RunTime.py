@@ -49,7 +49,7 @@ if __name__ == '__main__':
         ## SETUP AND RUN TIMEIT INSTANCE FOR RUNTIME FOR HEIGHT h over COUNT repetitions ##
         t = timeit.Timer('breadth_first_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE))',
                           setup="from __main__ import Towers_Of_Hanoi, breadth_first_search, LENGTH, h, EXPLORE")
-        #get average run-time over COUNT runs, rounded to the nearest hundredth-thousand
+        ## GET AND COMPUTE AVERAGE RUN-TIME THEN STORE IT ##
         average_time = round(t.timeit(COUNT)/COUNT, 5)
         TIME_OF[_BFS].append(average_time)
     
@@ -59,12 +59,11 @@ if __name__ == '__main__':
         t = timeit.Timer('bidirectional_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE),' +
                                               'Towers_Of_Hanoi(length=LENGTH,height=h,swap=True,explore=EXPLORE))',
                           setup="from __main__ import Towers_Of_Hanoi, bidirectional_search, LENGTH, h, EXPLORE")
-        
-        #get average run-time over COUNT runs, rounded to the nearest hundredth-thousand, and store it
+        ## GET AND COMPUTE AVERAGE RUN-TIME THEN STORE IT ##
         average_time = round(t.timeit(COUNT)/COUNT, 5)
         TIME_OF[_BI].append(average_time)
     
-    ## CREATE TABLE TO OUTPUT RUN-TIME ANALYSIS ##
+    ## CREATE OUTPUT RUN-TIME ANALYSIS ##
     table     = "Towers Of Hanoi Test: Run-Time Analysis\n"
     table   += "-" * len(table) + "\n"
     table   += "TEST SETTINGS\n"
