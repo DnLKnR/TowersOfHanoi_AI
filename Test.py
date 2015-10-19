@@ -189,6 +189,7 @@ if __name__ == '__main__':
     table += "\tNumber Of Executions:\t" + str(COUNT) + "\n"
     table += "\tTower Height Range:\t\t" + str(LOW) + " to " + str(HIGH) + "\n\n"
     
+    #IF NO TEST SPECIFIED OR RUNTIME SPECIFIED, EXECUTE RUNTIME
     if RUN_RT or not (RUN_MU or RUN_RT or RUN_SP):
         table += seper
         ## GLOBAL FOR Run_Time USE ##
@@ -197,12 +198,16 @@ if __name__ == '__main__':
         run_time = Run_Time(LENGTH, HEIGHTS, EXPLORE, COUNT)
         ## ADD RUN TIME REPORT BY CALLING get_analysis FUNCTION ##
         table += run_time.get_analysis()
-        
+    
+    #IF NO TEST SPECIFIED OR MEMORY USAGE SPECIFIED, EXECUTE MEMORY USAGE
     if RUN_MU or not (RUN_MU or RUN_RT or RUN_SP):
         table += seper
         mem_usage = Mem_Usage(LENGTH,HEIGHTS,EXPLORE)
         ## ADD MEMORY USAGE REPORT BY CALLING get_analysis FUNCTION ##
         table += mem_usage.get_analysis()
+    
+    #IF NO TEST SPECIFIED OR SOLUTION PATH SPECIFIED, EXECUTE SOLUTION PATH
+    #Note: The purpose for the solution path is for varying tower heights
     if RUN_SP or not (RUN_MU or RUN_RT or RUN_SP):
         table += seper
         #Default test just returns the solution path lengths
