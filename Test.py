@@ -17,6 +17,131 @@ parser.add_argument("-A",          dest="all",    action='store_true', default=F
 parser.add_argument("-rt",         dest="rt",     action='store_true', default=False,help="Execute Run-Time analysis")
 parser.add_argument("-mu",         dest="mu",     action='store_true', default=False,help="Execute Memory Usage analysis")
 
+class Mem_Usage:
+    def __init__(self, towers, heights, explore):
+        self.towers  = towers
+        self.heights = heights
+        self.explore = explore
+        
+    def get_analysis(self):
+        '''This function generates the analysis for the memory usage in terms
+        of nodes.  This function returns in the form of a string.'''
+        MemInfo_of = [[],[]]
+        BFS,BI    = 0, 1
+        ## EXECUTE BREADTH FIRST SEARCH AND BIDIRECTIONAL MEMORY-USAGE ANALYSIS ##
+        for h in self.heights:
+            ## SETUP AND STORE INSTANCE FOR MEMORY USAGE FOR HEIGHT h ##
+            answer_bfs = breadth_first_search(Towers_Of_Hanoi(length=self.towers,height=h,explore=self.explore),
+                                              return_mem_usage=True)
+            ## GET AND STORE MEMORY USAGE METRICS ##
+            BFS_mem = answer_bfs[-1]
+            MemInfo_of[BFS].append(BFS_mem)
+            
+            answer_bi = bidirectional_search(Towers_Of_Hanoi(length=self.towers,height=h,explore=self.explore),
+                                             Towers_Of_Hanoi(length=self.towers,height=h,swap=True,explore=self.explore),
+                                             return_mem_usage=True)
+            BI_mem  = answer_bi[-1]
+            MemInfo_of[BI].append(BI_mem)
+            
+        
+        ## FORMAT ANALYSIS FOR MEMORY USAGE ##
+        analysis = "Memory Usage Test Results\n\n"
+        for i,h in enumerate(self.heights):
+            analysis += "\tFor Height = " + str(h) + ":\n"
+            analysis += "\t\tBreadth-First-Search sizes:\n"
+            analysis += "\t\t  Graph:\t\t"        + str(MemInfo_of[BFS][i][0]) + "\n"
+            if self.explore:
+                analysis += "\t\t  Explored:\t\t" + str(MemInfo_of[BFS][i][1]) + "\n"
+            analysis += "\t\t  Frontier Max:\t"   + str(MemInfo_of[BFS][i][2]) + "\n"
+            analysis += "\t\tBidirectional sizes:\n"
+            analysis += "\t\t  Graph:\t\t"        + str(MemInfo_of[BI][i][0]) + "\n"
+            if self.explore:
+                analysis += "\t\t  Explored:\t\t" + str(MemInfo_of[BI][i][1]) + "\n"
+            analysis += "\t\t  Frontier Max:\t"   + str(MemInfo_of[BI][i][2]) + "\n\n"
+        
+        ## RETURN THE MEMORY USAGE ANALYSIS AS A STRING ##
+        return analysis
+
+class Path:
+    def __init__(self,length,heights):
+        self.length  = length
+        self.heights = heights
+        
+    def get_analysis(self):
+        analysis = "Solution Path Length Analysis\n\n"
+        for h in self.heights:
+            Problem     = Towers_Of_Hanoi(length=self.length,height=h)
+            BFS_States  = trace(breadth_first_search(Problem))
+            #Bidirectional Breadth-First-Search
+            Problem     = Towers_Of_Hanoi(length=self.length,height=h)
+            Goal        = Towers_Of_Hanoi(length=self.length,height=h,swap=True)
+            Bi_States   = trace(bidirectional_search(Problem, Goal))
+            
+            analysis += "\tFor Height = " + str(h) + ":\n"
+            analysis += "\t\tBreadth-First-Search:\t" + str(len(BFS_States)) + "\n"
+            analysis += "\t\tBidirectional:\t\t\t" +        str(len(Bi_States))  + "\n\n"
+        
+        
+        return analysis
+
+class Run_Time:
+    def __init__(self, length, heights, explore, count):
+        self.length  = length
+        self.heights = heights
+        self.explore = explore
+        self.count   = count
+        self.h       = heights[0]
+        
+        self.__construct__()
+        
+    def __construct__(self):
+        ## INITIALIZE ARRAYS WHERE STRINGS WILL BE KEPT FOR TIMEIT OBJECTS ##
+        self.setup       = []
+        self.program     = []
+        ## FORM SHARED ARGUMENTS FOR BI AND BFS FUNCTIONS (NOTE WE HAVE TO USE GLOBALS) ##
+        arguments   = "length=LENGTH,height=HEIGHT,explore=EXPLORE"
+        ## FORM THE FUNCTION CALL STRING FOR TIMEIT ##
+        program_bfs = "breadth_first_search(Towers_Of_Hanoi(" + arguments + "))"
+        program_bi  = "bidirectional_search(Towers_Of_Hanoi(" + arguments + "),"
+        program_bi +=                      "Towers_Of_Hanoi(" + arguments + ",swap=True))"
+        self.program.append(program_bfs)
+        self.program.append(program_bi)
+        
+        ## FORM THE IMPORT STRINGS FOR TIMEIT ##
+        setup_str  = "from __main__ import Towers_Of_Hanoi,"
+        setup_bfs   = setup_str + " breadth_first_search, LENGTH, HEIGHT, EXPLORE"                            
+        setup_bi    = setup_str + " bidirectional_search, LENGTH, HEIGHT, EXPLORE"  
+        self.setup.append(setup_bfs)
+        self.setup.append(setup_bi)
+    
+    def get_analysis(self):
+        Time_of = [[],[]]
+        BFS,BI  = 0,1
+        
+        ## EXECUTE BREADTH FIRST SEARCH RUN-TIME ANALYSIS ##
+        for h in self.heights:
+            ## FOR TIMEIT TO WORK, h MUST BE ACCESSIBLE GLOBALLY THROUGH OBJECT ##
+            global HEIGHT
+            HEIGHT = h
+            ## SETUP AND RUN TIMEIT INSTANCE FOR RUNTIME FOR HEIGHT h over COUNT repetitions ##
+            BFS_timer = timeit.Timer(self.program[BFS], setup=self.setup[BFS])
+            BI_timer  = timeit.Timer(self.program[BI],  setup=self.setup[BI])
+            ## GET AND COMPUTE AVERAGE RUN-TIME THEN STORE IT ##
+            BFS_avg_t = round(BFS_timer.timeit(self.count)/self.count, 5)
+            Time_of[BFS].append(BFS_avg_t)
+            ## GET AND COMPUTE AVERAGE RUN-TIME THEN STORE IT ##
+            BI_avg_t  = round(BI_timer.timeit(self.count)/self.count, 5)
+            Time_of[BI].append(BI_avg_t)
+            
+        
+        ## CREATE OUTPUT RUN-TIME ANALYSIS ##
+        analysis = "Run-Time Test Results\n\n"
+        for i,h in enumerate(self.heights):
+            analysis += "\tFor Height = " + str(h) + ":\n"
+            analysis += "\t\tBreadth-First-Search:\t" + str(Time_of[BFS][i]) + "s\n" 
+            analysis += "\t\tBidirectional:\t\t\t" + str(Time_of[BI][i]) + "s\n\n"
+        
+        return analysis
 
 if __name__ == '__main__':
     ## PARSE COMMAND LINE ARGUMENTS AND STORE VALUES IN inputs OBJECT ##
@@ -52,10 +177,7 @@ if __name__ == '__main__':
         sys.exit(1)
     
     #INITIALIZE GLOBALS
-    _BFS,_BI    = 0, 1
-    TIME_OF     = [[],[]]
-    NODE_OF     = [[],[]]
-    HEIGHT      = range(LOW, HIGH + 1)
+    HEIGHTS     = range(LOW, HIGH + 1)
     
     ## FORMAT OUTPUT FOR ANALYSIS HEADER ##
     table  = "Towers Of Hanoi Analysis\n"
@@ -68,107 +190,30 @@ if __name__ == '__main__':
     table += "\tTower Height Range:\t\t" + str(LOW) + " to " + str(HIGH) + "\n\n"
     
     if RUN_ALL or RUN_RT:
-        ## EXECUTE BREADTH FIRST SEARCH RUN-TIME ANALYSIS ##
-        for h in HEIGHT:
-            ## SETUP AND RUN TIMEIT INSTANCE FOR RUNTIME FOR HEIGHT h over COUNT repetitions ##
-            t = timeit.Timer('breadth_first_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE))',
-                              setup="from __main__ import Towers_Of_Hanoi, breadth_first_search, LENGTH, h, EXPLORE")
-            ## GET AND COMPUTE AVERAGE RUN-TIME THEN STORE IT ##
-            average_time = round(t.timeit(COUNT)/COUNT, 5)
-            TIME_OF[_BFS].append(average_time)
-        
-        ## EXECUTE BIDIRECTIONAL SEARCH RUN-TIME ANALYSIS ##
-        for h in HEIGHT:
-            ## SETUP AND RUN TIMEIT INSTANCE FOR RUNTIME FOR HEIGHT h over COUNT repetitions ##
-            t = timeit.Timer('bidirectional_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE),' +
-                                                  'Towers_Of_Hanoi(length=LENGTH,height=h,swap=True,explore=EXPLORE))',
-                              setup="from __main__ import Towers_Of_Hanoi, bidirectional_search, LENGTH, h, EXPLORE")
-            ## GET AND COMPUTE AVERAGE RUN-TIME THEN STORE IT ##
-            average_time = round(t.timeit(COUNT)/COUNT, 5)
-            TIME_OF[_BI].append(average_time)
-        
-        ## CREATE OUTPUT RUN-TIME ANALYSIS ##
         table += seper
-        table += "Run-Time Test Results\n\n"
-        for i,h in enumerate(HEIGHT):
-            table += "\tFor Height = " + str(h) + ":\n"
-            table += "\t\tBreadth-First-Search:\t" + str(TIME_OF[_BFS][i]) + "s\n" 
-            table += "\t\tBidirectional:\t\t\t" + str(TIME_OF[_BI][i]) + "s\n\n"
-    
+        ## GLOBAL FOR Run_Time USE ##
+        global HEIGHT
+        HEIGHT = HEIGHTS[0]
+        run_time = Run_Time(LENGTH, HEIGHTS, EXPLORE, COUNT)
+        ## ADD RUN TIME REPORT BY CALLING get_analysis FUNCTION ##
+        table += run_time.get_analysis()
+        
     if RUN_ALL or RUN_MU:
-        ## EXECUTE BREADTH FIRST SEARCH MEMORY-USAGE ANALYSIS ##
-        for h in HEIGHT:
-            ## SETUP AND STORE INSTANCE FOR MEMORY USAGE FOR HEIGHT h ##
-            answer = breadth_first_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE),
-                                             return_mem_usage=True)
-            ## GET AND STORE MEMORY USAGE METRICS ##
-            mem_usage = answer[1]
-            NODE_OF[_BFS].append(mem_usage)
-        
-        ## EXECUTE BIDIRECTIONAL SEARCH MEMORY-USAGE ANALYSIS ##
-        for h in HEIGHT:
-            ## SETUP AND STORE INSTANCE FOR MEMORY USAGE FOR HEIGHT h ##
-            answer = bidirectional_search(Towers_Of_Hanoi(length=LENGTH,height=h,explore=EXPLORE),
-                                          Towers_Of_Hanoi(length=LENGTH,height=h,swap=True,explore=EXPLORE),
-                                          return_mem_usage=True)
-            
-            ## GET AND STORE MEMORY USAGE METRICS ##
-            mem_usage = answer[2]
-            NODE_OF[_BI].append(mem_usage)
-        
-        ## FORMAT OUTPUT FOR MEMORY USAGE ##
         table += seper
-        table += "Memory Usage Test Results\n\n"
-        for i,h in enumerate(HEIGHT):
-            table += "\tFor Height = " + str(h) + ":\n"
-            table += "\t\tBreadth-First-Search sizes:\n"
-            table += "\t\t  Graph:\t\t"        + str(NODE_OF[_BFS][i][0]) + "\n"
-            if EXPLORE:
-                table += "\t\t  Explored:\t\t" + str(NODE_OF[_BFS][i][1]) + "\n"
-            table += "\t\t  Frontier Max:\t"   + str(NODE_OF[_BFS][i][2]) + "\n"
-            table += "\t\tBidirectional sizes:\n"
-            table += "\t\t  Graph:\t\t"        + str(NODE_OF[_BI][i][0]) + "\n"
-            if EXPLORE:
-                table += "\t\t  Explored:\t\t" + str(NODE_OF[_BI][i][1]) + "\n"
-            table += "\t\t  Frontier Max:\t"   + str(NODE_OF[_BI][i][2]) + "\n"
-        table += seper
+        mem_usage = Mem_Usage(LENGTH,HEIGHTS,EXPLORE)
+        ## ADD MEMORY USAGE REPORT BY CALLING get_analysis FUNCTION ##
+        table += mem_usage.get_analysis()
     
-    ## CHECK PATH TO SOLUTION SIZE ##
-    for h in HEIGHT:
-        PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=h)
-        BFS_STATES = trace(breadth_first_search(PROBLEM))
-        #Bidirectional Breadth-First-Search
-        PROBLEM = Towers_Of_Hanoi(length=LENGTH,height=h)
-        GOAL    = Towers_Of_Hanoi(length=LENGTH,height=h,swap=True)
-        BI_STATES = trace(bidirectional_search(PROBLEM, GOAL))
-        
-        table += "Trace Solution Path Analysis"
-        print("Bidirectional vs Breadth-First-Search Comparison")
-        if len(BI_STATES) != len(BFS_STATES):
-            print("Length Test failed\nBidirectional:\t\t"      + str(len(BI_STATES)) + 
-                                    "\nBreadth-First-Search:\t" + str(len(BFS_STATES)))
-            print(BI_STATES)
-            print(BFS_STATES)
-        else:
-            mismatch = 0
-            for i in range(len(BI_STATES)):
-                if not PROBLEM.compare(BI_STATES[i], BFS_STATES[i]):
-                    mismatch += 1
-            if mismatch:
-                print("Match Test failed\n\tMismatch Count:\t" + str(mismatch))
-                print(BI_STATES)
-                print(BFS_STATES)
-            else:
-                print("All tests executed correctly")
-                
+    table += seper
+    #Default test just returns the solution path lengths
+    solution_path = Path(LENGTH,HEIGHTS)
+    table += solution_path.get_analysis()
+    
+    #Print to terminal if a log file was not specified
     if LOGFILE == "":
         print(table)
     else:
-        #If file exists, append to it, otherwise create it
-        try:
-            log = open(LOGFILE, 'a')
-        except:
-            log = open(LOGFILE, 'w')
+        log = open(LOGFILE, 'w')
         log.write(table)
         log.close()
         print("Results output to " + LOGFILE)
