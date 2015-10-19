@@ -8,14 +8,14 @@ class Inputs:
 ## CREATE ARGUMENT PARSING OBJECT ##
 parser = argparse.ArgumentParser(description="This program checks the run time for Towers of Hanoi in terms of seconds")
 parser.add_argument("--min",    metavar="INT", dest="min",    nargs=1, default=[3], type=int,  help="Minimum Tower Height for Analysis (default is 3)")
-parser.add_argument("--max",    metavar="INT", dest="max",    nargs=1, default=[10], type=int, help="Maximum Tower Height for Analysis (default is 6)")
-parser.add_argument("--runs",   metavar="INT", dest="runs",   nargs=1, default=[10],type=int,  help="Number of executions per Height (default is 10)")
+parser.add_argument("--max",    metavar="INT", dest="max",    nargs=1, default=[7], type=int, help="Maximum Tower Height for Analysis (default is 6)")
+parser.add_argument("--runs",   metavar="INT", dest="runs",   nargs=1, default=[5],type=int,  help="Number of executions per Height (default is 10)")
 parser.add_argument("--towers", metavar="INT", dest="towers", nargs=1, default=[3], type=int,  help="Number of Towers (default is 3)")
 parser.add_argument("--log",    metavar="FILE", dest="file",  nargs=1, default=[""],type=str,  help="Specify a log file (default will print to terminal)")
-parser.add_argument("--no-explore",dest="explore",action='store_false',default=True, help="Disable using explored set")
-parser.add_argument("-A",          dest="all",    action='store_true', default=False,help="Execute Run-Time, Memory Usage, and Solution analysis")
-parser.add_argument("-rt",         dest="rt",     action='store_true', default=False,help="Execute Run-Time analysis")
-parser.add_argument("-mu",         dest="mu",     action='store_true', default=False,help="Execute Memory Usage analysis")
+parser.add_argument("--no-explore",dest="explore",action='store_false',default=True,  help="Disable using explored set")
+parser.add_argument("-sp",          dest="sp",    action='store_true', default=False,help="Execute Solution Path analysis")
+parser.add_argument("-rt",         dest="rt",     action='store_true', default=False, help="Execute Run-Time analysis")
+parser.add_argument("-mu",         dest="mu",     action='store_true', default=False, help="Execute Memory Usage analysis")
 
 class Mem_Usage:
     def __init__(self, towers, heights, explore):
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     COUNT   = inputs.runs[0]
     EXPLORE = inputs.explore
     LOGFILE = inputs.file[0]
-    RUN_ALL = inputs.all
+    RUN_SP = inputs.sp
     RUN_RT  = inputs.rt
     RUN_MU  = inputs.mu
     ## CHECK VALIDITY OF COMMAND LINE ARGS ##
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     table += "\tNumber Of Executions:\t" + str(COUNT) + "\n"
     table += "\tTower Height Range:\t\t" + str(LOW) + " to " + str(HIGH) + "\n\n"
     
-    if RUN_ALL or RUN_RT:
+    if RUN_RT or not (RUN_MU or RUN_RT or RUN_SP):
         table += seper
         ## GLOBAL FOR Run_Time USE ##
         global HEIGHT
@@ -198,16 +198,16 @@ if __name__ == '__main__':
         ## ADD RUN TIME REPORT BY CALLING get_analysis FUNCTION ##
         table += run_time.get_analysis()
         
-    if RUN_ALL or RUN_MU:
+    if RUN_MU or not (RUN_MU or RUN_RT or RUN_SP):
         table += seper
         mem_usage = Mem_Usage(LENGTH,HEIGHTS,EXPLORE)
         ## ADD MEMORY USAGE REPORT BY CALLING get_analysis FUNCTION ##
         table += mem_usage.get_analysis()
-    
-    table += seper
-    #Default test just returns the solution path lengths
-    solution_path = Path(LENGTH,HEIGHTS)
-    table += solution_path.get_analysis()
+    if RUN_SP or not (RUN_MU or RUN_RT or RUN_SP):
+        table += seper
+        #Default test just returns the solution path lengths
+        solution_path = Path(LENGTH,HEIGHTS)
+        table += solution_path.get_analysis()
     
     #Print to terminal if a log file was not specified
     if LOGFILE == "":
