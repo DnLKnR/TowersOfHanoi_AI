@@ -53,11 +53,16 @@ class Towers_Of_Hanoi(object):
                         action.append([i,j])
                     elif state[i][-1] < state[j][-1]:
                         action.append([i,j])
+        # Add the state to the front of the explored set
         if self.explore:
             self.explored.insert(0,state)
+        # Return the actions generated
         return action
     
     def copy(self, state):
+        """Returns a copy of the multidimensional array that is
+        the towers of hanoi board state.  The parameter state is
+        the multidimensional array being copied"""
         new_state = []
         for tower in state:
             new_tower = []
@@ -79,12 +84,17 @@ class Towers_Of_Hanoi(object):
         return new_state
     
     def is_explored(self, state):
+        """Check if the state passed in as a parameter is already
+        a part of the explored set."""
         for explored_state in self.explored:
             if self.compare(explored_state,state):
                 return True
         return False
     
     def compare(self, state, other):
+        """Compare two states (state and other) to see if they are
+        the same in configuration.  If they are, return True, else
+        is they are different, return false"""
         for i,tower in enumerate(state):
             if len(other[i]) != len(tower):
                 return False
@@ -133,6 +143,11 @@ class Node(object):
 
 
 def bidirectional_search(problem, goal,return_mem_usage=False):
+    """This function uses two different problems, one starting from
+    the goal, the other starting from the problem. When the two sides
+    meet at an equivalent node, a solution is found. The parameter 
+    return_mem_usage allows for appending to the answer the memory
+    usage metrics"""
     # Initialize variables and lists
     initial,solution    = 0,1
     explore             = [[Node(problem.initial)],[Node(goal.initial)]]
@@ -145,7 +160,6 @@ def bidirectional_search(problem, goal,return_mem_usage=False):
     ## MEMORY USAGE QUANTIFIER ##
     node_counter    = 2
     max_length      = 2
-    #print_towers(node.state)
     # Loop until all nodes are explored(frontier queue is empty) or Goal_Test criteria are met
     while 0 not in length:
         
@@ -155,7 +169,7 @@ def bidirectional_search(problem, goal,return_mem_usage=False):
             for child in parent.expand(problem):
                 frontier[initial].append(child)
                 length[initial] += 1
-                ## NODE QUANTIFIER ##
+                ## MEMORY USAGE QUANTIFIER ##
                 node_counter += 1
         
         #Update max length if new total length is larger
@@ -166,7 +180,7 @@ def bidirectional_search(problem, goal,return_mem_usage=False):
         explore[initial]    = frontier[initial]
         frontier[initial]   = []
         
-        #compare all parents from top and bottom against each other, 
+        #compare all parents from problem-side and bottom-side
         for init in explore[initial]:
             for sol in explore[solution]:
                 # if two match, solution is found
@@ -183,11 +197,12 @@ def bidirectional_search(problem, goal,return_mem_usage=False):
         length[solution] = 0
         for parent in explore[solution]:
             for child in parent.expand(goal):
-                frontier[solution].insert(0,child)
+                frontier[solution].append(child)
                 length[solution] += 1
-                ## NODE QUANTIFIER ##
+                ## MEMORY USAGE QUANTIFIER ##
                 node_counter += 1
         
+        #Update max length if new total length is larger
         if max_length < length[initial] + length[solution]:
             max_length = length[initial] + length[solution]
         
@@ -198,19 +213,22 @@ def bidirectional_search(problem, goal,return_mem_usage=False):
     return None
     
 def breadth_first_search(problem,return_mem_usage=False):
+    """breadth_first_search takes atleast one parameter which is
+    the problem object containing a problem in which a solution
+    can be search for.  parameter return_mem_usage adds onto the
+    returned answer the memory usage details"""
     # Start from first node of the problem Tree
     node = Node(problem.initial)
     # Check if current node meets Goal_Test criteria
     if problem.goal_test(node.state):
         return node
-    # Create a Queue to store all nodes of a particular level. Import QueueClass()
+    # The queue that will be used is pythons built-in list
     frontier    = [node]
     length      = 1
     
     ## MEMORY USAGE QUANTIFIER ##
     node_counter = 1
     max_length   = 1
-    # print_towers(node.state)
     # Loop until all nodes are explored(frontier queue is empty) or Goal_Test criteria are met
     while length:
         # If max_length is smaller than current length, update it
@@ -222,26 +240,26 @@ def breadth_first_search(problem,return_mem_usage=False):
         # Loop over all children of the current node
         # Note: We consider the fact that a node can have multiple child nodes here
         for child in node.expand(problem):
-
-            ## NODE QUANTIFIER ##
+            ## MEMORY USAGE QUANTIFIER ##
             node_counter += 1
 
-            # If child node meets Goal_Test criteria
+            # If child node meets Goal_Test criteria, we've found our answer
             if problem.goal_test(child.state):
-                
                 answer = [child]
                 if return_mem_usage:
                     explored_length = len(problem.explored)
                     answer.append([node_counter,explored_length,max_length])
                 
                 return answer
-            
+            #if goal critieria was not met, add child and continue forward
             frontier.append(child)
             length += 1
         
     return None
 
 def print_towers(towers):
+    """This function prints the towers in basic,
+    but readable format"""
     print(towers)
     print("_" * 2 * len(towers))
     for tower in towers:
@@ -252,8 +270,13 @@ def print_towers(towers):
     print("_" * 2 * len(towers))
 
 def trace(solution):
+    """This function traces the return value of either the
+    breadth_first_search or bidirectional_search functions.
+    This function collects all the states from the initial
+    state to the goal state"""
     if solution == None:
         print("No solution exists: Parameter 1 is None-Type")
+    # Breadth-First-Search 
     elif len(solution) == 1:
         start = solution[0]
         actions = []
@@ -261,6 +284,7 @@ def trace(solution):
             actions.insert(0, start.state)
             start = start.parent
         return actions
+    # Bidirectional Search
     else:
         start = [solution[0],solution[1].parent]
         actions = []
