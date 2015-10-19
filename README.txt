@@ -1,4 +1,5 @@
-To run the tests, execute the Test.py file through the Python3.4 interpreter.
+To run the tests, execute the Test.py file through the Python3.4 interpreter. These 
+files should be fully functional.
 
 To execute the basic test, run the following:
 	
@@ -51,10 +52,19 @@ with the new information.
 
 The metrics that can be adjust for this program are the tower heights, the number
 of towers, disabling Explored Set usage, and the number of executions for the 
-run-time analysis (which will take the average)
+run-time analysis (which will take the average).
 
 The necessary files for this project are:
 	__init__.py
 	TowersOfHanoi.py
 	Test.py
 	
+The general approach to my problem was to reuse as much code as possible
+between the breadth first search and the bidirectional breadth first search.
+This means maximizing variability while decreasing hard-coded values.  By
+using this approach, I was also capable of having other varying metrics
+like number of towers.  The Bidirectional Search differs from the 
+Breadth-First-Search by storing two Problems with initial and goal
+states, but one Problem has the two states swapped, so it is working from
+the opposite end backwards.  Also, Compare is used to compare two states
+for a solution instead of using goal test.
