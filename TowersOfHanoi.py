@@ -28,10 +28,12 @@ class Towers_Of_Hanoi(object):
         for i in range(self.height,0,-1):
             initial[0].append(i)
             goal[-1].append(i)
-        
+        #If swap is true, swap the two states 
+        #so that it can be worked backwards
         if swap:
             self.initial    = goal
             self.goal       = initial
+        #Else maintain the current setup
         else:
             self.initial    = initial
             self.goal       = goal
@@ -49,8 +51,10 @@ class Towers_Of_Hanoi(object):
                 for j in range(self.length):
                     if i == j:
                         continue
+                    #If the tower is empty, add a ring
                     elif len(state[j]) == 0:
                         action.append([i,j])
+                    #If the tower's ring is greater than currents, add the ring
                     elif state[i][-1] < state[j][-1]:
                         action.append([i,j])
         # Add the state to the front of the explored set
