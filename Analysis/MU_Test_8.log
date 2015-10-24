@@ -1,0 +1,22 @@
+Towers Of Hanoi Analysis
+-------------------------
+
+TEST SETTINGS
+	Use Explored Set:		True
+	Number Of Towers:		3
+	Number Of Executions:	1
+	Tower Height Range:		8 to 8
+
+-------------------------
+Memory Usage Test Results
+
+	For Height = 8:
+		Breadth-First-Search sizes:
+		  Graph:		18659
+		  Explored:		6220
+		  Frontier Max:	386
+		Bidirectional sizes:
+		  Graph:		12738
+		  Explored:		4246
+		  Frontier Max:	576
+

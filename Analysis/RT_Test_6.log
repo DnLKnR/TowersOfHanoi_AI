@@ -1,0 +1,16 @@
+Towers Of Hanoi Analysis
+-------------------------
+
+TEST SETTINGS
+	Use Explored Set:		True
+	Number Of Towers:		3
+	Number Of Executions:	1
+	Tower Height Range:		6 to 6
+
+-------------------------
+Run-Time Test Results
+
+	For Height = 6:
+		Breadth-First-Search:	0.08966s
+		Bidirectional:			0.03269s
+
